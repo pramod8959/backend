@@ -1,0 +1,401 @@
+{
+  "info": {
+    "_postman_id": "12345678-1234-1234-1234-123456789012",
+    "name": "SBW MLM API Collection",
+    "description": "Complete test collection for SBW MLM Tree Structure and Commission APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.to.have.status(200)) {",
+                  "    var response = pm.response.json();",
+                  "    if (response.success && response.token) {",
+                  "        pm.environment.set('admin_token', response.token);",
+                  "        pm.environment.set('admin_user_id', response.user.id);",
+                  "        console.log('Admin token saved:', response.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0x8B3c82698CeBaf7F6B2d2a74079dC811d2D1566b\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/wallet-login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "wallet-login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Login (Test User)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.to.have.status(200)) {",
+                  "    var response = pm.response.json();",
+                  "    if (response.success && response.token) {",
+                  "        pm.environment.set('user_token', response.token);",
+                  "        pm.environment.set('test_user_id', response.user.id);",
+                  "        console.log('User token saved:', response.token.substring(0, 20) + '...');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/wallet-login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "wallet-login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🌳 Tree Structure",
+      "item": [
+        {
+          "name": "Get My Tree (Full)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tree/tree?levels=10&stats=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tree", "tree"],
+              "query": [
+                {
+                  "key": "levels",
+                  "value": "10"
+                },
+                {
+                  "key": "stats",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific User Tree",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tree/tree/{{test_user_id}}?levels=5&stats=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tree", "tree", "{{test_user_id}}"],
+              "query": [
+                {
+                  "key": "levels",
+                  "value": "5"
+                },
+                {
+                  "key": "stats",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Simple Tree (Performance)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tree/tree-simple?depth=3",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tree", "tree-simple"],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tree Statistics Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tree/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tree", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💰 Commission System",
+      "item": [
+        {
+          "name": "Get Commission Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Levels & Unlock Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/levels",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "levels"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Commission History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/history?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Distribute Commission (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/distribute/{{test_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "distribute", "{{test_user_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Potential Earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/potential-earnings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "potential-earnings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Commission Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/commissions/admin/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "commissions", "admin", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management",
+      "item": [
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sponsorCode\": \"0x8b3c82698cebaf7f6b2d2a74079dc811d2d1566b\",\n  \"walletAddress\": \"0x9999999999999999999999999999999999999999\",\n  \"paymentMethod\": \"USDT\",\n  \"paymentTxHash\": \"0xabcd1234567890abcd1234567890abcd1234567890abcd1234567890abcd1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    }
+  ]
+}
