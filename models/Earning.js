@@ -34,7 +34,7 @@ const earningSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['referral', 'bonus', 'reward', 'direct_referral', 'indirect_referral', 'level_earning', 'creator_fee', 'promotional_bonus', 'missed_wallet'],
+    enum: ['referral', 'bonus', 'reward', 'direct_referral', 'indirect_referral', 'level_earning', 'level_income', 'creator_bonus', 'development_bonus', 'creator_fee', 'promotional_bonus', 'missed_wallet'],
     default: 'referral'
   },
   status: {

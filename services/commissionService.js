@@ -210,14 +210,15 @@ class CommissionService {
         let commissionAmount = 0;
         let commissionType = '';
         
-        if (level === 1) {
-          // Direct referral bonus: $2 (10% of $20)
-          commissionAmount = 2;
-          commissionType = 'direct_referral';
-        } else {
-          // Level income: $1 per level (5% each)
-          // Earn 5% bonus on each level up to 15 levels deep
-          if (canReceiveCommission) {
+        // Check if user can receive commission at this level
+        if (canReceiveCommission) {
+          if (level === 1) {
+            // Direct referral bonus: $2 (10% of $20)
+            commissionAmount = 2;
+            commissionType = 'direct_referral';
+          } else {
+            // Level income: $1 per level (5% each)
+            // Earn 5% bonus on each level up to 15 levels deep
             commissionAmount = 1; // Flat $1 for all levels 2-15
             commissionType = 'level_income';
           }
@@ -261,7 +262,7 @@ class CommissionService {
               amount: commissionAmount,
               commissionRate: level === 1 ? 10 : 5, // 10% for direct, 5% for each level
               description: commission.description,
-              type: level === 1 ? 'direct_referral' : 'level_income',
+              type: level === 1 ? 'direct_referral' : 'level_earning',
               status: 'completed',
               paymentMethod: 'USDT' // Default
             });

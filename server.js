@@ -187,6 +187,7 @@ app.use(compression()); // Enable gzip compression
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:5173', // Vite default port
     'https://mlm-project-sep-one.vercel.app',
     'https://mlm-project-sen-one.vercel.app',
     'https://*.vercel.app'

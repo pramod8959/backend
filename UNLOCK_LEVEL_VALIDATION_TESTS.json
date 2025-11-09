@@ -1,0 +1,187 @@
+{
+  "info": {
+    "name": "Unlock Level Validation Tests",
+    "description": "Test commission validation based on unlock levels",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "2. Admin Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('authToken', response.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletAddress\": \"0x8B3c82698CeBaf7F6B2d2a74079dC811d2D1566b\",\n  \"password\": \"admin123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "3. View Network Tree (8 Levels)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tree/tree?levels=8&stats=true",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tree", "tree"],
+          "query": [
+            {
+              "key": "levels",
+              "value": "8"
+            },
+            {
+              "key": "stats",
+              "value": "true"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Create Test User (Level 5)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('newUserId', response.user.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"UnlockTest\",\n  \"lastName\": \"User\",\n  \"walletAddress\": \"0xUnlockTest{{$randomInt}}\",\n  \"sponsorWalletAddress\": \"0xzerounlockedtest123456789012345678901234567890\",\n  \"password\": \"password123\",\n  \"confirmPassword\": \"password123\",\n  \"paymentMethod\": \"USDT\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "5. Test Commission Distribution (Unlock Validation)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/commissions/distribute/{{newUserId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "commissions", "distribute", "{{newUserId}}"]
+        }
+      }
+    },
+    {
+      "name": "6. Get Commission Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/commissions/summary/69075dacfca476fdfbd69436",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "commissions", "summary", "69075dacfca476fdfbd69436"]
+        }
+      }
+    },
+    {
+      "name": "7. View Updated Tree After Commission",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/tree/tree?levels=6&stats=true",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tree", "tree"],
+          "query": [
+            {
+              "key": "levels",
+              "value": "6"
+            },
+            {
+              "key": "stats",
+              "value": "true"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ]
+}

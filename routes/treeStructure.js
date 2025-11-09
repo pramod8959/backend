@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const Earning = require('../models/Earning');
+const Commission = require('../models/Commission');
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -79,6 +80,77 @@ const getMembersAtLevel = async (userId, targetLevel) => {
   return members.length;
 };
 
+// Helper function to get actual earnings from database
+const getActualEarnings = async (userId) => {
+  try {
+    // Get earnings from Earning collection
+    const earnings = await Earning.find({ user: userId });
+    const commissions = await Commission.find({ toUser: userId });
+    
+    // Calculate totals by type
+    const directReferralEarnings = earnings
+      .filter(e => e.type === 'direct_referral')
+      .reduce((sum, e) => sum + e.amount, 0);
+      
+    const levelEarnings = earnings
+      .filter(e => e.type === 'level_earning')
+      .reduce((sum, e) => sum + e.amount, 0);
+      
+    const creatorBonusEarnings = earnings
+      .filter(e => e.type === 'creator_fee')
+      .reduce((sum, e) => sum + e.amount, 0);
+      
+    const otherEarnings = earnings
+      .filter(e => !['direct_referral', 'level_earning', 'creator_fee'].includes(e.type))
+      .reduce((sum, e) => sum + e.amount, 0);
+      
+    // Add commission records
+    const directCommissions = commissions
+      .filter(c => c.commissionType === 'direct_referral')
+      .reduce((sum, c) => sum + c.amount, 0);
+      
+    const levelCommissions = commissions
+      .filter(c => c.commissionType === 'level_income')
+      .reduce((sum, c) => sum + c.amount, 0);
+      
+    const creatorCommissions = commissions
+      .filter(c => c.commissionType === 'creator_bonus')
+      .reduce((sum, c) => sum + c.amount, 0);
+      
+    const otherCommissions = commissions
+      .filter(c => !['direct_referral', 'level_income', 'creator_bonus'].includes(c.commissionType))
+      .reduce((sum, c) => sum + c.amount, 0);
+    
+    const totalFromDirectReferrals = directReferralEarnings + directCommissions;
+    const totalFromLevels = levelEarnings + levelCommissions;
+    const totalFromCreatorBonus = creatorBonusEarnings + creatorCommissions;
+    const totalFromOther = otherEarnings + otherCommissions;
+    const totalActual = totalFromDirectReferrals + totalFromLevels + totalFromCreatorBonus + totalFromOther;
+    
+    return {
+      fromDirectReferrals: totalFromDirectReferrals,
+      fromLevelEarnings: totalFromLevels,
+      fromCreatorBonus: totalFromCreatorBonus,
+      fromOtherSources: totalFromOther,
+      totalActualEarnings: totalActual,
+      recordsCount: {
+        earnings: earnings.length,
+        commissions: commissions.length
+      }
+    };
+  } catch (error) {
+    console.error('Error getting actual earnings:', error);
+    return {
+      fromDirectReferrals: 0,
+      fromLevelEarnings: 0,
+      fromCreatorBonus: 0,
+      fromOtherSources: 0,
+      totalActualEarnings: 0,
+      recordsCount: { earnings: 0, commissions: 0 }
+    };
+  }
+};
+
 // Build tree structure recursively
 const buildUserTree = async (userId, currentLevel = 1, maxLevel = 15, processedUsers = new Set()) => {
   // Prevent infinite loops
@@ -144,12 +216,8 @@ const buildUserTree = async (userId, currentLevel = 1, maxLevel = 15, processedU
       hasChildren: children.length > 0,
       childrenCount: children.length,
       
-      // Earnings potential
-      earningsBreakdown: {
-        fromDirectReferrals: directReferralsCount * 2, // $2 per direct referral
-        fromIndirectReferrals: 0, // Will be calculated separately
-        totalPossible: 0 // Will be calculated
-      }
+      // Earnings data (actual from database)
+      earningsBreakdown: await getActualEarnings(user._id)
     };
     
   } catch (error) {
